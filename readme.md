@@ -64,7 +64,7 @@ cd Accessibility-Webanalyzer
 pip install -r requirements.txt
 
 # Run your first analysis
-python accessibility_analyzer.py https://example.com
+python main.py https://example.com
 ```
 
 ### Docker Setup (Alternative)
@@ -74,7 +74,7 @@ python accessibility_analyzer.py https://example.com
 docker build -t accessibility-analyzer .
 
 # Run analysis
-docker run -v $(pwd)/reports:/app/reports accessibility-analyzer https://example.com
+docker run -v $(pwd)/output:/app/output accessibility-analyzer https://example.com
 ```
 
 ---
@@ -84,26 +84,37 @@ docker run -v $(pwd)/reports:/app/reports accessibility-analyzer https://example
 ### Basic Analysis
 ```bash
 # Analyze a website (default: 10 pages)
-python accessibility_analyzer.py https://yourwebsite.com
+python main.py https://yourwebsite.com
 
 # Custom page limit
-python accessibility_analyzer.py https://yourwebsite.com --max-pages 20
+python main.py https://yourwebsite.com --max-pages 20
 
 # Analyze all discoverable pages
-python accessibility_analyzer.py https://yourwebsite.com --analyze-all
+python main.py https://yourwebsite.com --analyze-all
 
 # Custom output filename
-python accessibility_analyzer.py https://yourwebsite.com --output custom_report.pdf
+python main.py https://yourwebsite.com --output custom_report.pdf
 ```
 
 ### Advanced Options
 ```bash
-# Full help
-python accessibility_analyzer.py --help
+# Show all available options
+python main.py --help
+
+# Examples with different configurations
+python main.py https://example.com --max-pages 50 --output detailed_audit.pdf
+python main.py https://mysite.com --analyze-all  # Discovers all pages automatically
 ```
 
 ### Example Output
 ```
+🔍 Accessibility Web Analyzer
+==================================================
+Target URL: https://example.com
+Max Pages: 10
+
+🚀 Initializing analyzer...
+Detecting website technologies...
 🔍 SPA detected - trying common route patterns...
   ✓ Found SPA route: /about
   ✓ Found SPA route: /contact
@@ -117,17 +128,31 @@ Found 10 pages to analyze (language pages filtered):
   ✓ /contact
   ✓ /services
 
+🔬 Running accessibility analysis...
 Analyzing page 1/10: Homepage
 Analyzing page 2/10: /about
 ...
 
-Analysis complete! Consolidating issues...
-Found issues:
-  MANDATORY: 2 issues
-  SHOULD DO: 5 issues  
-  NICE TO HAVE: 3 issues
+📄 Generating PDF report...
 
-🎉 Analysis complete! Report saved as: accessibility_report_example.com_20250630_143022.pdf
+🎉 Analysis complete!
+📊 Report saved as: output/reports/accessibility_report_example.com_20250630_143022.pdf
+
+📊 Analysis Summary:
+   Pages analyzed: 10
+   Technologies: WordPress, Bootstrap
+   Total issues: 12
+   Estimated fix time: 8.5 hours
+   🔴 CRITICAL: 3 issues (4.2h)
+   🟡 IMPORTANT: 7 issues (3.8h)
+   🟢 NICE TO HAVE: 2 issues (0.5h)
+   Legal compliance: ⚠️  MEDIUM RISK
+
+💡 Next steps:
+   1. Open the PDF report: output/reports/accessibility_report_example.com_20250630_143022.pdf
+   2. Review MANDATORY issues first
+   3. Implement fixes according to priority
+   4. Re-run analysis to track progress
 ```
 
 ---
@@ -157,14 +182,51 @@ Found issues:
 
 ```bash
 # E-commerce site analysis
-python accessibility_analyzer.py https://shop.example.com --max-pages 15
+python main.py https://shop.example.com --max-pages 25
 
 # Corporate website audit  
-python accessibility_analyzer.py https://company.com --analyze-all
+python main.py https://company.com --analyze-all
 
 # Blog/content site
-python accessibility_analyzer.py https://blog.example.com --max-pages 25
+python main.py https://blog.example.com --max-pages 15 --output blog_audit.pdf
+
+# Quick small site check
+python main.py https://startup.com --max-pages 5
 ```
+
+---
+
+## 🛠️ Project Structure
+
+```
+accessibility-web-analyzer/
+├── main.py                    # 🚀 Main entry point
+├── requirements.txt           # 📦 Dependencies
+├── README.md                 # 📖 This file
+├── LICENSE                   # ⚖️ MIT License
+├── .gitignore               # 🚫 Git ignore rules
+├── components/              # 🧩 Modular code components
+│   ├── __init__.py         # Package initialization
+│   ├── analyzer.py         # Main analyzer orchestrator
+│   ├── page_discovery.py   # Smart page finding logic
+│   ├── accessibility_checks.py # All WCAG compliance checks
+│   ├── report_generator.py # Professional PDF generation
+│   └── utils.py            # Helper functions & tech detection
+├── output/                 # 📄 Generated files (auto-created)
+│   ├── reports/           # PDF reports
+│   ├── logs/             # Analysis logs
+│   └── temp/             # Temporary files
+└── docs/                  # 📚 Documentation
+    ├── installation.md   # Detailed setup guide
+    ├── usage.md         # Advanced usage examples
+    └── examples.md      # Real-world scenarios
+```
+
+### Modular Architecture Benefits
+- **🔧 Easy to extend** - Add new checks by creating new modules
+- **🧪 Testable** - Each component can be tested independently  
+- **📚 Maintainable** - Clear separation of concerns
+- **🤝 Contributor-friendly** - Simple to understand and modify
 
 ---
 
@@ -214,15 +276,16 @@ We welcome contributions! Here's how to get started:
 ```bash
 # Fork and clone your fork
 git clone https://github.com/YOUR_USERNAME/Accessibility-Webanalyzer.git
+cd Accessibility-Webanalyzer
 
 # Create feature branch  
 git checkout -b feature/amazing-new-feature
 
 # Install development dependencies
-pip install -r requirements-dev.txt
+pip install -r requirements.txt
 
-# Run tests
-pytest tests/
+# Test your changes
+python main.py https://example.com --max-pages 3
 
 # Make your changes and commit
 git commit -m "Add amazing new feature"
@@ -233,33 +296,83 @@ git push origin feature/amazing-new-feature
 
 ### Areas for Contribution
 - 🐛 **Bug fixes** - Report and fix issues
-- ✨ **New features** - WCAG criterion coverage expansion  
+- ✨ **New accessibility checks** - Expand WCAG criterion coverage  
 - 📚 **Documentation** - Improve guides and examples
-- 🧪 **Testing** - Add test coverage
+- 🧪 **Testing** - Add test coverage for components
 - 🌍 **Internationalization** - Multi-language support
-- 🎨 **UI/UX** - Report design improvements
+- 🎨 **Report design** - Enhanced PDF styling and layout
+
+### Adding New Accessibility Checks
+```python
+# Example: Add a new check in components/accessibility_checks.py
+def check_custom_accessibility(self, url, soup):
+    """Your custom accessibility check"""
+    issues = []
+    
+    # Your check logic here
+    if problem_detected:
+        issues.append({
+            'category': 'MANDATORY',  # or 'SHOULD DO', 'NICE TO HAVE'
+            'type': 'Your Check Name',
+            'description': 'Brief description of the issue',
+            'count': 1,
+            'effort_hours': 0.5,
+            'details': ['Specific details about the problem'],
+            'wcag_criterion': '1.1.1 Your WCAG Criterion',
+            'impact': 'Description of impact on users'
+        })
+    
+    return issues
+
+# Then add it to the analyze_page method
+def analyze_page(self, url):
+    # ... existing checks ...
+    issues.extend(self.check_custom_accessibility(url, soup))
+```
 
 ---
 
 ## 🔧 Technical Details
 
-### Architecture
+### Component Architecture
 ```
-accessibility_analyzer.py
-├── Page Discovery (Sitemap, SPA routes, Links)
-├── Content Analysis (WCAG checks, Mobile testing)  
-├── Issue Consolidation (Cross-page deduplication)
-├── Technology Detection (CMS, Framework identification)
-└── PDF Generation (Professional reporting)
+main.py (Entry Point)
+├── components/analyzer.py (Orchestrator)
+│   ├── components/page_discovery.py
+│   │   ├── Sitemap parsing
+│   │   ├── SPA route detection
+│   │   └── Link crawling
+│   ├── components/accessibility_checks.py
+│   │   ├── Alt text validation
+│   │   ├── ARIA compliance
+│   │   ├── Form accessibility  
+│   │   ├── Navigation structure
+│   │   ├── Mobile responsiveness
+│   │   └── HTML validity
+│   ├── components/report_generator.py
+│   │   ├── Professional PDF styling
+│   │   ├── Executive summaries
+│   │   └── Implementation roadmaps
+│   └── components/utils.py
+│       ├── Technology detection
+│       └── Helper functions
 ```
 
-### Supported Checks
+### Supported Accessibility Checks
 - **Images**: Alt text validation, decorative image detection
-- **Forms**: Label association, error handling
-- **Navigation**: Heading hierarchy, landmark structure  
-- **Interactivity**: ARIA labels, keyboard accessibility
-- **Mobile**: Responsive design, touch targets
-- **Structure**: HTML validity, semantic markup
+- **Forms**: Label association, error handling, field validation
+- **Navigation**: Heading hierarchy, landmark structure, skip links  
+- **Interactivity**: ARIA labels, keyboard accessibility, focus management
+- **Mobile**: Responsive design, touch targets, viewport configuration
+- **Structure**: HTML validity, semantic markup, language attributes
+
+### Technology Detection Capabilities
+- **CMS Detection**: WordPress, Drupal, Joomla, TYPO3, Shopify
+- **JS Frameworks**: React, Vue, Angular, Svelte, Next.js, Nuxt.js
+- **CSS Frameworks**: Bootstrap, Tailwind, Foundation, Bulma
+- **Libraries**: jQuery, Lodash, Moment.js
+- **Analytics**: Google Analytics, Google Tag Manager
+- **Hosting**: Cloudflare, AWS, Netlify, Vercel
 
 ---
 
