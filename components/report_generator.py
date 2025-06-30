@@ -153,7 +153,7 @@ class ReportGenerator:
         self._add_executive_summary(story, issues)
         story.append(PageBreak())
         self._add_detailed_analysis(story, issues)
-        story.append(PageBreak())
+        # Let content flow naturally - no forced page break
         self._add_recommendations(story, issues)
         
         try:
@@ -163,6 +163,13 @@ class ReportGenerator:
         except Exception as e:
             print(f"Error generating PDF: {e}")
             return None
+    
+    def _has_recommendations(self, issues):
+        """Check if there are recommendations to show."""
+        conclusion = self._generate_conclusion(issues)
+        return (conclusion['priority_actions'] or 
+                conclusion['quick_wins'] or 
+                any(issues.values()))
     
     def _add_title_page(self, story, base_url, analyzed_pages, technologies):
         """Add title page and basic information."""
@@ -378,7 +385,11 @@ class ReportGenerator:
                     
                     story.append(Spacer(1, 15))
                 
-                story.append(Spacer(1, 20))
+                # Reduce spacing after each category, especially the last one
+                if category != 'NICE TO HAVE':
+                    story.append(Spacer(1, 20))
+                else:
+                    story.append(Spacer(1, 5))  # Minimal space after the last category
     
     def _add_recommendations(self, story, issues):
         """Add recommendations section."""
@@ -388,50 +399,24 @@ class ReportGenerator:
         
         if conclusion['priority_actions']:
             story.append(Paragraph("Prioritäre Sofortmaßnahmen", self.styles['subheading']))
-            story.append(Spacer(1, 8))
+            story.append(Spacer(1, 5))  # Reduced spacing
             
             for action in conclusion['priority_actions']:
                 story.append(Paragraph(f"• {action}", self.styles['highlight']))
-                story.append(Spacer(1, 4))
+                story.append(Spacer(1, 3))  # Reduced spacing
             
-            story.append(Spacer(1, 15))
+            story.append(Spacer(1, 12))  # Reduced spacing
         
         # Quick wins
         if conclusion['quick_wins']:
             story.append(Paragraph("Quick Wins (≤ 2 Stunden)", self.styles['subheading']))
-            story.append(Spacer(1, 8))
+            story.append(Spacer(1, 5))  # Reduced spacing
             
             for win in conclusion['quick_wins'][:4]:
                 story.append(Paragraph(f"• {win['type']}: {win['description']}", self.styles['normal']))
-                story.append(Spacer(1, 4))
+                story.append(Spacer(1, 3))  # Reduced spacing
             
-            story.append(Spacer(1, 15))
-        
-        # Implementation roadmap
-        story.append(Paragraph("Umsetzungsfahrplan", self.styles['subheading']))
-        
-        roadmap_text = f"""
-        <b>Phase 1 - KRITISCH (Woche 1-2):</b><br/>
-        • Sofortige Behebung aller rechtskritischen Mängel ({sum(issue['effort_hours'] for issue in issues['MANDATORY']):.1f}h)<br/>
-        • ZIEL: Eliminierung des Haftungsrisikos<br/>
-        <br/>
-        <b>Phase 2 - COMPLIANCE (Woche 3-6):</b><br/>
-        • Schließung aller Compliance-Lücken ({sum(issue['effort_hours'] for issue in issues['SHOULD DO']):.1f}h)<br/>
-        • ZIEL: Vollständige WCAG 2.1 AA Konformität<br/>
-        <br/>
-        <b>Phase 3 - OPTIMIERUNG (Monat 2-3):</b><br/>
-        • Umsetzung strategischer Verbesserungen ({sum(issue['effort_hours'] for issue in issues['NICE TO HAVE']):.1f}h)<br/>
-        • ZIEL: Branchenführerschaft in digitaler Inklusion<br/>
-        <br/>
-        <b>Phase 4 - NACHHALTIGKEIT (Kontinuierlich):</b><br/>
-        • Implementierung permanenter Accessibility-QS-Prozesse<br/>
-        • Team-Schulungen zu WCAG-Standards<br/>
-        • Quartalsweise Compliance-Audits<br/>
-        • ZIEL: Dauerhafte Rechtssicherheit und Wettbewerbsvorteile
-        """
-        
-        story.append(Paragraph(roadmap_text, self.styles['normal']))
-        story.append(Spacer(1, 20))
+            story.append(Spacer(1, 12))  # Reduced spacing
         
         # Final conclusion
         story.append(Paragraph("Fazit und nächste Schritte", self.styles['subheading']))

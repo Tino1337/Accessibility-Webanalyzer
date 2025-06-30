@@ -1505,32 +1505,6 @@ class AccessibilityAnalyzer:
             
             story.append(Spacer(1, 15))
         
-        # Implementation roadmap
-        story.append(Paragraph("Umsetzungsfahrplan", subheading_style))
-        
-        roadmap_text = f"""
-        <b>Phase 1 - KRITISCH (Woche 1-2):</b><br/>
-        • Sofortige Behebung aller rechtskritischen Mängel ({sum(issue['effort_hours'] for issue in self.issues['MANDATORY']):.1f}h)<br/>
-        • ZIEL: Eliminierung des Haftungsrisikos<br/>
-        <br/>
-        <b>Phase 2 - COMPLIANCE (Woche 3-6):</b><br/>
-        • Schließung aller Compliance-Lücken ({sum(issue['effort_hours'] for issue in self.issues['SHOULD DO']):.1f}h)<br/>
-        • ZIEL: Vollständige WCAG 2.1 AA Konformität<br/>
-        <br/>
-        <b>Phase 3 - OPTIMIERUNG (Monat 2-3):</b><br/>
-        • Umsetzung strategischer Verbesserungen ({sum(issue['effort_hours'] for issue in self.issues['NICE TO HAVE']):.1f}h)<br/>
-        • ZIEL: Branchenführerschaft in digitaler Inklusion<br/>
-        <br/>
-        <b>Phase 4 - NACHHALTIGKEIT (Kontinuierlich):</b><br/>
-        • Implementierung permanenter Accessibility-QS-Prozesse<br/>
-        • Team-Schulungen zu WCAG-Standards<br/>
-        • Quartalsweise Compliance-Audits<br/>
-        • ZIEL: Dauerhafte Rechtssicherheit und Wettbewerbsvorteile
-        """
-        
-        story.append(Paragraph(roadmap_text, normal_style))
-        story.append(Spacer(1, 20))
-        
         # Final conclusion
         story.append(Paragraph("Fazit und nächste Schritte", subheading_style))
         

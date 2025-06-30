@@ -26,6 +26,10 @@ class PageDiscovery:
         """Get list of pages to analyze"""
         pages = []
         
+        # Handle unlimited pages case
+        if max_pages is None:
+            max_pages = 999  # Set a reasonable upper limit
+        
         try:
             response = requests.get(base_url, timeout=10, headers={'User-Agent': 'Mozilla/5.0'})
             content = response.content.decode('utf-8', errors='ignore')
@@ -46,8 +50,11 @@ class PageDiscovery:
             # Method 3: Look for sitemap.xml
             found_pages.extend(self._discover_from_sitemap(base_url, max_pages))
             
-            # Add found pages
-            pages.extend(found_pages[:max_pages-1])
+            # Add found pages (all if unlimited, otherwise respect limit)
+            if max_pages == 999:
+                pages.extend(found_pages)  # Add all found pages
+            else:
+                pages.extend(found_pages[:max_pages-1])  # Limit pages
             
         except Exception as e:
             print(f"Error getting pages: {e}")
@@ -61,7 +68,12 @@ class PageDiscovery:
                 seen.add(page)
                 unique_pages.append(page)
         
-        return unique_pages[:max_pages]
+        # Return all pages if max_pages was set to 999 (unlimited), otherwise limit
+        if max_pages == 999:
+            print(f"📄 Found {len(unique_pages)} total pages (unlimited mode)")
+            return unique_pages
+        else:
+            return unique_pages[:max_pages]
     
     def _is_language_page(self, url_or_path):
         """Check if URL path starts with a language code"""
@@ -89,6 +101,9 @@ class PageDiscovery:
     def _discover_from_links(self, soup, base_url):
         """Discover pages from HTML links"""
         found_pages = []
+        priority_pages = []
+        regular_pages = []
+        
         links = soup.find_all('a', href=True)
         parsed_base = urlparse(base_url)
         
@@ -99,18 +114,28 @@ class PageDiscovery:
             
             # Check if it's from same domain and valid
             if (parsed_url.netloc == parsed_base.netloc and 
-                not any(ext in full_url.lower() for ext in ['.pdf', '.doc', '.zip', '.jpg', '.png', 'mailto:', 'tel:']) and
+                not any(ext in full_url.lower() for ext in ['.pdf', '.doc', '.zip', '.jpg', '.png', 'mailto:', 'tel:', '#']) and
                 not self._is_language_page(full_url)):
                 
                 link_text = link.get_text().lower().strip()
                 href_lower = href.lower()
                 
-                # Check for priority keywords
+                # Check for priority keywords first
+                is_priority = False
                 for keyword in self.priority_keywords:
                     if keyword in link_text or keyword in href_lower:
-                        if full_url not in found_pages:
-                            found_pages.append(full_url)
+                        if full_url not in priority_pages:
+                            priority_pages.append(full_url)
+                            is_priority = True
                         break
+                
+                # If not priority, add to regular pages
+                if not is_priority and full_url not in regular_pages:
+                    regular_pages.append(full_url)
+        
+        # Return priority pages first, then regular pages
+        found_pages = priority_pages + regular_pages
+        print(f"  🎯 Found {len(priority_pages)} priority pages, {len(regular_pages)} regular pages")
         
         return found_pages
     
@@ -171,7 +196,10 @@ class PageDiscovery:
                     
                     loc_tags = sitemap_soup.find_all('loc')
                     sitemap_count = 0
-                    max_per_sitemap = min(10, max_pages - len(found_pages))
+                    if max_pages == 999:
+                        max_per_sitemap = 50  # More aggressive in unlimited mode
+                    else:
+                        max_per_sitemap = min(20, max_pages - len(found_pages))
                     
                     for loc in loc_tags:
                         if sitemap_count >= max_per_sitemap:
